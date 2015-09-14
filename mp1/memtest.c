@@ -8,5 +8,5 @@ int main(int argc, char ** argv) {
 
   ackerman_main();
 
-  // release_allocator()
+  // atexit( release_allocator() ):
 }
