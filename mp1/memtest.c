@@ -11,8 +11,8 @@ int main(int argc, char ** argv) {
 
 	// PARSE INPUT ARGUMENTS
 	// input parameters (basic block size, memory length)
-	int BASIC_BLOCK_SIZE;
-	int MEMORY_LENGTH;
+	unsigned int BASIC_BLOCK_SIZE;
+	unsigned int MEMORY_LENGTH;
 	int c;
 	opterr = 0;	
 

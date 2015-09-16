@@ -66,8 +66,7 @@ int my_free(Addr _a) {
 	return 0;
 }
 
-unsigned int init_allocator(unsigned int _basic_block_size, 
-	unsigned int _length) {
+unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length) {
 	/* Use the malloc() function to request the correct amount of memory
 	   from the runtime system.
 	   Then call the 
