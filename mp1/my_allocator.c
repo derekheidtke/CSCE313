@@ -13,35 +13,28 @@
 */
 
 /*--------------------------------------------------------------------------*/
-/* DEFINES */
-/*--------------------------------------------------------------------------*/
-
-	/* -- (none) -- */
-
-/*--------------------------------------------------------------------------*/
 /* INCLUDES */
 /*--------------------------------------------------------------------------*/
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "my_allocator.h"
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
 /*--------------------------------------------------------------------------*/
 
-	/* -- (none) -- */
+	struct free_list
+	{
+		Addr HEAD, TAIL;
+	};
 
 /*--------------------------------------------------------------------------*/
-/* CONSTANTS */
+/* GLOBAL VARIABLES */ 
 /*--------------------------------------------------------------------------*/
 
-	/* -- (none) -- */
-
-/*--------------------------------------------------------------------------*/
-/* FORWARDS */
-/*--------------------------------------------------------------------------*/
-
-	/* -- (none) -- */
+	Addr 			MEMORY;	  // Holds the address of the aqcuired memory
+	unsigned int 	MEM_SIZE;  // size of acquired memory
 
 /*--------------------------------------------------------------------------*/
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
@@ -60,7 +53,8 @@ Addr my_malloc(unsigned int _length) {
 
 int my_free(Addr _a) {
 	/*
-	   Coalescion?
+	   Free the address given.
+	   Coalesce 
 	*/
 	free(_a);
 	return 0;
@@ -69,15 +63,19 @@ int my_free(Addr _a) {
 unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length) {
 	/* Use the malloc() function to request the correct amount of memory
 	   from the runtime system.
-	   Then call the 
+	*/
+	if ( (MEMORY = malloc( _length )) == NULL )
+		return -1;			// Out of memory error
+	MEM_SIZE = _length;		// Set length of memory if allocation successful.
+	printf("=====MEMORY ALLOCATED====\n");
+	/*	  
+	   Initialize linked list struct
 	*/
 	return 0;
 }
 
-int release_allocator() {
-	/*
-	   Use the free() function to return memory to system.
-	   This is called when the program exits normally.
-	*/
-	return 0;
+void release_allocator(void) {
+	// Free MEMORY
+	free(MEMORY);
+	printf("=====MEMORY FREED====\n");
 }

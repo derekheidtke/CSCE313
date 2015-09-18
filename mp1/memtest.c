@@ -1,30 +1,35 @@
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
+#include "apue.h"
+//#include <stdlib.h>
+//#include <stdio.h>
+//#include <unistd.h>
 
 #include "ackerman.h"
+#include "my_allocator.h"
 
 #define OPTSTR "b:s:"	// getopt() option list
 
 int main(int argc, char ** argv) {
+	// Register release_allocator() to run when program exits normally.
+	if( atexit(release_allocator) != 0 )
+		err_sys("Can't register release_allocator().\n");
 
 	// PARSE INPUT ARGUMENTS
 	unsigned int BASIC_BLOCK_SIZE;
 	unsigned int MEMORY_LENGTH;
-	bool b_flag = false,	// Used to provide default argument values if
-		 s_flag = false;	// none are given.
-	opterr = 0;				// Disable getopt() error message.
+	int b_flag = 0,		// Used to provide default argument values if
+		 s_flag = 0;	// none are given.
+	opterr = 0;			// Disable getopt() error message.
 
 	int c;
 	while( (c = getopt(argc, argv, "b:s:")) != -1 ){
 		switch(c){
 			case 'b':
-					 b_flag = true;
+					 b_flag = 1;
 					 BASIC_BLOCK_SIZE = atoi(optarg);
 					 break;
 			case 's':
-					 s_flag = true;
+					 s_flag = 1;
 					 MEMORY_LENGTH = atoi(optarg);
 					 break;
 		};
@@ -43,10 +48,11 @@ int main(int argc, char ** argv) {
 			BASIC_BLOCK_SIZE,MEMORY_LENGTH);
 //==============================================================================
 
-
-	// init_allocator(basic block size, memory length)
+	// If no memory allocated, return immediately
+	if (init_allocator(BASIC_BLOCK_SIZE, MEMORY_LENGTH) == -1 )
+		printf("Out of memory. Could not allocate requested amount.\n");
 
 	ackerman_main();
 
-	// atexit( release_allocator() ):
+	return 0;
 }

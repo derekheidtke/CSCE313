@@ -3,14 +3,20 @@
 all: memtest
 
 ackerman.o: ackerman.c ackerman.h 
-	g++ -c -g ackerman.c
+	gcc -Wall -c -g ackerman.c
 
 my_allocator.o: my_allocator.c my_allocator.h
-	g++ -c -g my_allocator.c
+	gcc -Wall -c -g my_allocator.c
 
-memtest: memtest.c ackerman.o my_allocator.o
-	g++ -o memtest memtest.c ackerman.o my_allocator.o
+error.o: error.c
+	gcc -Wall -c -g error.c
+
+memtest: memtest.c ackerman.o my_allocator.o error.o 
+	gcc -o memtest memtest.c ackerman.o my_allocator.o error.o
 
 test:
 	./memtest
+
+clean:
+	rm *.o
 
