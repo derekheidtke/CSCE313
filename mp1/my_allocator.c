@@ -76,6 +76,7 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 
 int release_allocator() {
 	/*
+	   Use the free() function to return memory to system.
 	   This is called when the program exits normally.
 	*/
 	return 0;

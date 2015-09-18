@@ -11,6 +11,6 @@ my_allocator.o: my_allocator.c my_allocator.h
 memtest: memtest.c ackerman.o my_allocator.o
 	g++ -o memtest memtest.c ackerman.o my_allocator.o
 
-run:
+test:
 	./memtest
 
