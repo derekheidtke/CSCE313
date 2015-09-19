@@ -49,10 +49,12 @@ int main(int argc, char ** argv) {
 //==============================================================================
 
 	// If no memory allocated, return immediately
-	if (init_allocator(BASIC_BLOCK_SIZE, MEMORY_LENGTH) == -1 )
+	if (init_allocator(BASIC_BLOCK_SIZE, MEMORY_LENGTH) == 1 )
 		printf("Out of memory. Could not allocate requested amount.\n");
 
 	ackerman_main();
 
 	return 0;
 }
+
+

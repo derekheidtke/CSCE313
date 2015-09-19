@@ -33,8 +33,10 @@
 /* GLOBAL VARIABLES */ 
 /*--------------------------------------------------------------------------*/
 
-	Addr 			MEMORY;	  // Holds the address of the aqcuired memory
-	unsigned int 	MEM_SIZE;  // size of acquired memory
+	Addr 				MEMORY;	  // Holds the address of the aqcuired memory
+	unsigned int 		MEM_SIZE;  // size of acquired memory
+	unsigned int 		BLOCK_SIZE; 
+	struct free_list	FL;
 
 /*--------------------------------------------------------------------------*/
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
@@ -48,7 +50,11 @@ Addr my_malloc(unsigned int _length) {
 	   Use the buddy system to get the memories.
 	   Break large chunks into smaller ones.
 	*/
-	return malloc((size_t)_length);
+	//printf("HEAD: %p\nTAIL: %p\n",FL.HEAD,FL.TAIL);
+	Addr rqst_mem;
+	
+	//return rqst_mem+COUNT*64;
+	return malloc(_length);
 }
 
 int my_free(Addr _a) {
@@ -56,6 +62,7 @@ int my_free(Addr _a) {
 	   Free the address given.
 	   Coalesce 
 	*/
+
 	free(_a);
 	return 0;
 }
@@ -65,17 +72,26 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	   from the runtime system.
 	*/
 	if ( (MEMORY = malloc( _length )) == NULL )
-		return -1;			// Out of memory error
-	MEM_SIZE = _length;		// Set length of memory if allocation successful.
-	printf("=====MEMORY ALLOCATED====\n");
+		return 1;			// Out of memory error
+
+	MEM_SIZE   = _length;		// Set length of memory if allocation successful.
+	BLOCK_SIZE = _basic_block_size;
+
+	printf("\n>>>>>>>>>>>>>>>>>>>>>>MEMORY>ALLOCATED>>>>>>>>>>>>>>>>>>>>>>\n");
 	/*	  
 	   Initialize linked list struct
 	*/
+	FL.HEAD = MEMORY;
+	FL.TAIL = MEMORY+MEM_SIZE-1;
+
+	printf("ADDRESS_OF_FL: %p\n", &FL);
+	printf("SIZE_OF_FL: %lu\n", sizeof(FL));
+
 	return 0;
 }
 
 void release_allocator(void) {
 	// Free MEMORY
 	free(MEMORY);
-	printf("=====MEMORY FREED====\n");
+	printf("\n<<<<<<<<<<<<<<<<<<<<<<<MEMORY<FREED<<<<<<<<<<<<<<<<<<<<<<<\n\n");
 }
