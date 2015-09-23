@@ -28,7 +28,20 @@
 /* DATA STRUCTURES */ 
 /*--------------------------------------------------------------------------*/
 
-typedef void * Addr; 
+  typedef void * Addr;
+
+  struct list_node
+  {
+    Addr NEXT;
+    int size;
+
+
+  };
+  struct list
+  {
+    struct list_node[];
+
+  };
 
 /*--------------------------------------------------------------------------*/
 /* FORWARDS */ 

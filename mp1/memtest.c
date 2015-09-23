@@ -10,6 +10,7 @@
 #define OPTSTR "b:s:"	// getopt() option list
 
 int main(int argc, char ** argv) {
+
 	// Register release_allocator() to run when program exits normally.
 	if( atexit(release_allocator) != 0 )
 		err_sys("Can't register release_allocator().\n");
@@ -51,6 +52,7 @@ int main(int argc, char ** argv) {
 	// If no memory allocated, return immediately
 	if (init_allocator(BASIC_BLOCK_SIZE, MEMORY_LENGTH) == 1 )
 		printf("Out of memory. Could not allocate requested amount.\n");
+	// Otherwise, run ackerman_main()
 
 	ackerman_main();
 

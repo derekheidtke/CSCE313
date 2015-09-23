@@ -18,30 +18,26 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "my_allocator.h"
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
 /*--------------------------------------------------------------------------*/
 
-	struct free_list
-	{
-		Addr HEAD, TAIL;
-	};
 
 /*--------------------------------------------------------------------------*/
 /* GLOBAL VARIABLES */ 
 /*--------------------------------------------------------------------------*/
 
-	Addr 				MEMORY;	  // Holds the address of the aqcuired memory
-	unsigned int 		MEM_SIZE;  // size of acquired memory
-	unsigned int 		BLOCK_SIZE; 
-	struct free_list	FL;
+	Addr 					MEMORY;	  	// Holds the address of the aqcuired memory
+	unsigned int 			MEM_SIZE;  	// size of acquired memory
+	unsigned int 			BLOCK_SIZE; 
+	Addr 					FL_MEM;
 
 /*--------------------------------------------------------------------------*/
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
 /*--------------------------------------------------------------------------*/
-
 Addr my_malloc(unsigned int _length) {
 	/* This preliminary implementation simply hands the call over the 
 	   the C standard library! 
@@ -50,7 +46,7 @@ Addr my_malloc(unsigned int _length) {
 	   Use the buddy system to get the memories.
 	   Break large chunks into smaller ones.
 	*/
-	//printf("HEAD: %p\nTAIL: %p\n",FL.HEAD,FL.TAIL);
+	  // round up to nect power of two
 	Addr rqst_mem;
 	
 	//return rqst_mem+COUNT*64;
@@ -69,8 +65,7 @@ int my_free(Addr _a) {
 
 unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length) {
 	/* Use the malloc() function to request the correct amount of memory
-	   from the runtime system.
-	*/
+	   from the runtime system.*/
 	if ( (MEMORY = malloc( _length )) == NULL )
 		return 1;			// Out of memory error
 
@@ -81,11 +76,10 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	/*	  
 	   Initialize linked list struct
 	*/
-	FL.HEAD = MEMORY;
-	FL.TAIL = MEMORY+MEM_SIZE-1;
 
-	printf("ADDRESS_OF_FL: %p\n", &FL);
-	printf("SIZE_OF_FL: %lu\n", sizeof(FL));
+
+	// printf("ADDRESS_OF_FL: %p\n", &FL);
+	// printf("SIZE_OF_FL: %lu\n", sizeof(FL));
 
 	return 0;
 }
