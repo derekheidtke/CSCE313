@@ -12,7 +12,7 @@ error.o: error.c
 	gcc -Wall -c -g error.c
 
 memtest: memtest.c ackerman.o my_allocator.o error.o 
-	gcc -o memtest memtest.c ackerman.o my_allocator.o error.o
+	gcc -o memtest memtest.c ackerman.o my_allocator.o error.o -lm
 
 test:
 	./memtest

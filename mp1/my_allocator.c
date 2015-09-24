@@ -15,10 +15,10 @@
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
 /*--------------------------------------------------------------------------*/
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+// #include "apue.h"
+// #include <stdlib.h>
+// #include <stdio.h>
+// #include <math.h>
 #include "my_allocator.h"
 
 /*--------------------------------------------------------------------------*/
@@ -30,56 +30,51 @@
 /* GLOBAL VARIABLES */ 
 /*--------------------------------------------------------------------------*/
 
-	Addr 					MEMORY;	  	// Holds the address of the aqcuired memory
-	unsigned int 			MEM_SIZE;  	// size of acquired memory
-	unsigned int 			BLOCK_SIZE; 
-	Addr 					FL_MEM;
+	Addr 					MEMORY;	  	// Holds the address of the total aqcuired memory
+	Addr 					FL_MEM;		// Holds the address of the free list
+
+	unsigned int 			MEM_SIZE;  	// requested amount of memory
+	unsigned int 			BLOCK_SIZE; // requested size of basic blocks
+	unsigned int 			LEVELS; 	// CALCULATED: the number of levels in the
+										// free list
 
 /*--------------------------------------------------------------------------*/
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
 /*--------------------------------------------------------------------------*/
 Addr my_malloc(unsigned int _length) {
-	/* This preliminary implementation simply hands the call over the 
-	   the C standard library! 
-	   Of course this needs to be replaced by your implementation.
+	// round up to next power of two
 
-	   Use the buddy system to get the memories.
-	   Break large chunks into smaller ones.
-	*/
-	  // round up to nect power of two
-	Addr rqst_mem;
-	
-	//return rqst_mem+COUNT*64;
 	return malloc(_length);
 }
 
 int my_free(Addr _a) {
-	/*
-	   Free the address given.
-	   Coalesce 
-	*/
 
 	free(_a);
 	return 0;
 }
 
+//============================================================================================
+
 unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length) {
-	/* Use the malloc() function to request the correct amount of memory
-	   from the runtime system.*/
-	if ( (MEMORY = malloc( _length )) == NULL )
-		return 1;			// Out of memory error
 
-	MEM_SIZE   = _length;		// Set length of memory if allocation successful.
-	BLOCK_SIZE = _basic_block_size;
+	MEM_SIZE   = _length;									// SET GLOBL total mem size variable
+	BLOCK_SIZE = _basic_block_size;							// SET GLOBL basic blk size variable
+	LEVELS = log2(MEM_SIZE/BLOCK_SIZE)+1;					// Number of ranks
 
-	printf("\n>>>>>>>>>>>>>>>>>>>>>>MEMORY>ALLOCATED>>>>>>>>>>>>>>>>>>>>>>\n");
-	/*	  
-	   Initialize linked list struct
-	*/
+	// malloc the total amount of memory, plus the amount needed for the headers
+	int chunk_size = _length + (MEM_SIZE/BLOCK_SIZE)*sizeof(Header*);
+	if ( (MEMORY = malloc( chunk_size )) == NULL )
+		return 1;											// Out of memory error
+	
+	// Initialize linked list struct
+	if ( (FL_MEM = malloc(sizeof(Header*)*LEVELS)) == NULL )
+		return 2;											// Out of memory error
 
-
-	// printf("ADDRESS_OF_FL: %p\n", &FL);
-	// printf("SIZE_OF_FL: %lu\n", sizeof(FL));
+	Header** free_list = FL_MEM;			// Point free_list to beginning of FL_MEM
+	Header* tempHeader = (Header*)MEMORY;	// Point tempHeader to beginning of MEMORY
+	tempHeader->NEXT = NULL;				// Initialize values of tempHeader
+	tempHeader->size = MEM_SIZE;			// "                               "
+	free_list[0] = tempHeader;				// assign tempHeader to first entry in free_list
 
 	return 0;
 }
@@ -87,5 +82,5 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 void release_allocator(void) {
 	// Free MEMORY
 	free(MEMORY);
-	printf("\n<<<<<<<<<<<<<<<<<<<<<<<MEMORY<FREED<<<<<<<<<<<<<<<<<<<<<<<\n\n");
+	free(FL_MEM);
 }
