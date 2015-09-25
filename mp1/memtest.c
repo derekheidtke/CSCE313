@@ -47,7 +47,7 @@ int main(int argc, char ** argv) {
 			BASIC_BLOCK_SIZE,MEMORY_LENGTH);
 	//==============================================================================
 
-	// IF 0, no error; IF 1, block memory allocation error; IF 2, free-list allocation error
+	// IF 0, no error; IF 1, block-memory-allocation error; IF 2, free-list allocation error
 	unsigned int allocate_flag = init_allocator(BASIC_BLOCK_SIZE, MEMORY_LENGTH);
 	switch(allocate_flag){
 		case(0):

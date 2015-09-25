@@ -24,40 +24,31 @@
 
   struct Header
   {
-    Addr NEXT;
+    struct Header* NEXT;
     int size;
+    int MAGIC;
   };
-
   typedef struct Header Header;
 
-/*--------------------------------------------------------------------------*/
-/* MODULE   MY_ALLOCATOR */
-/*--------------------------------------------------------------------------*/
-//   // Calculate the log_2 of a number
-// double log2( double n )  {   
-//     return log( n ) / log( 2 );  
-// }
+unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length);
 
-unsigned int init_allocator(unsigned int _basic_block_size, 
-			    unsigned int _length); 
-/* This function initializes the memory allocator and makes a portion of 
-   ’_length’ bytes available. The allocator uses a ’_basic_block_size’ as 
-   its minimal unit of allocation. The function returns the amount of 
-   memory made available to the allocator. If an error occurred, 
-   it returns 0. 
-*/ 
+void release_allocator(void);
 
-void release_allocator(void); 
-/* This function returns any allocated memory to the operating system. 
-   After this function is called, any allocation fails.
-*/ 
+Addr my_malloc(unsigned int _length);
 
-Addr my_malloc(unsigned int _length); 
-/* Allocate _length number of bytes of free memory and returns the 
-   address of the allocated portion. Returns 0 when out of memory. */ 
+int my_free(Addr _a);
 
-int my_free(Addr _a); 
-/* Frees the section of physical memory previously allocated 
-   using ’my_malloc’. Returns 0 if everything ok. */ 
+//========================================================
+// HELPER FUNCTIONS
+
+
+int removeNext(Header*);
+
+int putAfter(Header*, Header*);
+
+int moveDown(int, Header*);
+
+int moveUp(int, Header*);
+
 
 #endif 
