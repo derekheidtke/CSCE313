@@ -12,19 +12,7 @@
 
 */
 
-/*--------------------------------------------------------------------------*/
-/* INCLUDES */
-/*--------------------------------------------------------------------------*/
-// #include "apue.h"
-// #include <stdlib.h>
-// #include <stdio.h>
-// #include <math.h>
 #include "my_allocator.h"
-
-/*--------------------------------------------------------------------------*/
-/* DATA STRUCTURES */ 
-/*--------------------------------------------------------------------------*/
-
 
 /*--------------------------------------------------------------------------*/
 /* GLOBAL VARIABLES */ 
@@ -37,7 +25,6 @@
 	unsigned int 			BLOCK_SIZE; // requested size of basic blocks
 	unsigned int 			LEVELS; 	// CALCULATED: the number of levels in the
 										// free list
-
 /*--------------------------------------------------------------------------*/
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
 /*--------------------------------------------------------------------------*/
@@ -70,11 +57,11 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	if ( (FL_MEM = malloc(sizeof(Header*)*LEVELS)) == NULL )
 		return 2;											// Out of memory error
 
-	Header** free_list = FL_MEM;			// Point free_list to beginning of FL_MEM
-	Header* tempHeader = (Header*)MEMORY;	// Point tempHeader to beginning of MEMORY
-	tempHeader->NEXT = NULL;				// Initialize values of tempHeader
-	tempHeader->size = MEM_SIZE;			// "                               "
-	free_list[0] = tempHeader;				// assign tempHeader to first entry in free_list
+	Header** free_list = FL_MEM;					// Point free_list to beginning of FL_MEM
+	Header* tempHeader = (Header*)MEMORY;			// Point tempHeader to beginning of MEMORY
+	tempHeader->NEXT = NULL;						// Initialize values of tempHeader
+	tempHeader->size = MEM_SIZE;					// "                               "
+	free_list[0] = tempHeader;						// assign tempHeader to first entry in free_list
 
 	return 0;
 }
