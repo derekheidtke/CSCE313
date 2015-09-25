@@ -24,7 +24,7 @@
 
   struct Header
   {
-    struct Header* NEXT;
+    Addr NEXT;
     int size;
     int MAGIC;
   };
@@ -46,7 +46,7 @@ int removeNext(Header*);
 
 int putAfter(Header*, Header*);
 
-int moveDown(int, Header*);
+int moveDown(int);
 
 int moveUp(int, Header*);
 

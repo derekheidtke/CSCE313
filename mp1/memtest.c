@@ -51,7 +51,6 @@ int main(int argc, char ** argv) {
 	unsigned int allocate_flag = init_allocator(BASIC_BLOCK_SIZE, MEMORY_LENGTH);
 	switch(allocate_flag){
 		case(0):
-			printf("Initialization successful.\n");
 			break;
 		case(1):
 			printf("Out of memory. Could not allocate requested amount.\n");
@@ -61,6 +60,8 @@ int main(int argc, char ** argv) {
 			printf("Out of memory. Could not allocate free list.\n");
 			return 0;
 			break;
+		default:
+			printf("\nERROR IN MEMTEST.C SWITCH STATEMENT: DEFAULT CASE SHOULD NOT HAPPED.\n");
 		
 	}
 	// Otherwise, run ackerman_main()
