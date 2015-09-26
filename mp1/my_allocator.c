@@ -25,13 +25,41 @@
 	unsigned int 			BLOCK_SIZE; // requested size of basic blocks
 	unsigned int 			MAX_RRANK; 	// CALCULATED: the number of levels in the
 										// free list
+	unsigned int 			MAGIC = 504649209;	// number to verify that a header is actually a header
 /*--------------------------------------------------------------------------*/
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
 /*--------------------------------------------------------------------------*/
 Addr my_malloc(unsigned int _length) {
-	// round up to next power of two
+	// preliminary check:
+	// make sure the argument is within given bounds
+	if ( _length < 0 || _length > MEM_SIZE ) return 0;
+	if ( _length < BLOCK_SIZE ) _length = BLOCK_SIZE;	// round up if too small
+	// Now, _length is guaranteed to be within proper range
 
-	return malloc(_length);
+	Header** FL = FL_MEM;
+	Addr address = NULL;
+
+	// find the absolute rank of the block the user wants
+	int r = ceil( log2(_length) );	// r is absolute rank.
+	int rr = log2(MEM_SIZE)-r;		// rr is relative rank. (ie. the freelist index of the requested block size)
+
+	int i = rr-1;
+	while(FL[rr] == NULL){// while the rr tier is empty
+		if ( i < 0 ) return 0;		// out of memory
+		if(FL[i] == NULL)			// if ith level empty
+			i--;						// go up to next level
+		else{						// else
+			moveDown(i);				// split block in ith level; add two blocks to i+1 level
+			i++;						// move back down to split next block if necessary
+		}
+	}
+	// After this, the rr tier should have available space
+	// So, give first available block to user
+	address =  (Addr)( (int8_t*)(FL[rr]) + (int)sizeof(Header) );	// give user the memory after the header
+	// remove given block from free list
+	FL[rr] = FL[rr]->NEXT;
+
+	return address;
 }
 
 int my_free(Addr _a) {
@@ -53,17 +81,66 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	if ( (MEMORY = malloc( chunk_size )) == NULL )
 		return 1;											// Out of memory error
 
-	// Initialize linked list struct
+	// Initialize linked list structure
 	if ( (FL_MEM = malloc(sizeof(Header*)*MAX_RRANK+1)) == NULL )
 		return 2;											// Out of memory error
 
 	Header** free_list = FL_MEM;					// Point free_list to beginning of FL_MEM
 	Header* tempHeader = (Header*)MEMORY;			// Point tempHeader to beginning of MEMORY
 	tempHeader->NEXT = NULL;						// Initialize values of tempHeader
-	tempHeader->size = MEM_SIZE;					// "	                           "
+	tempHeader->size = MEM_SIZE;					//
+	tempHeader->MAGIC = MAGIC;						//
 	free_list[0] = tempHeader;						// assign tempHeader to first entry in free_list
 
-	/*
+
+	// test my_malloc() with MEM_SIZE=128 and BLOCK_SIZE=16
+	printf("\nFL_SIZE: %lu\n", sizeof(Header*)*MAX_RRANK+1);
+	printf("\nCHUNK_SIZE: %d\n", chunk_size);
+	printf("\nSIZEOF_HEADER: %lu\n", sizeof(Header));
+	printf("\nMEMORY_START: %p\n", MEMORY);
+	Addr* test_arr = malloc(1*sizeof(Addr));
+	int n = 0;
+
+	
+	n = 15;
+	if ( (test_arr[0] = my_malloc(n)) != NULL )
+		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
+	else
+		printf("\nFailed.\n");
+
+	n = 32;
+	if ( (test_arr[0] = my_malloc(n)) != NULL )
+		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
+	else
+		printf("\nFailed.\n");
+
+	n = 32;
+	if ( (test_arr[0] = my_malloc(n)) != NULL )
+		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
+	else
+		printf("\nFailed.\n");
+
+	n = 32;
+	if ( (test_arr[0] = my_malloc(n)) != NULL )
+		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
+	else
+		printf("\nFailed.\n");
+
+	n = 15;
+	if ( (test_arr[0] = my_malloc(n)) != NULL )
+		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
+	else
+		printf("\nFailed.\n");
+
+	n = 2;
+	if ( (test_arr[0] = my_malloc(n)) != NULL )
+		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
+	else
+		printf("\nFailed.\n");
+
+
+/*
+	// Test the splitting function only
 	// test with MEM_SIZE=128 and BLOCK_SIZE=16
 	printf("\nFL_SIZE: %d\n", sizeof(Header*)*MAX_RRANK+1);
 	printf("\nCHUNK_SIZE: %d\n", chunk_size);
@@ -99,7 +176,7 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	printf("\n\n");
 */
 	
-	return 0;
+	return chunk_size;
 }
 
 void release_allocator(void) {
@@ -140,9 +217,9 @@ int removeNext(Header* current){
 // Find first free r-block,
 // move it to the (r+1)-list and create its buddy
 int moveDown(int r){
-	Header** fl = FL_MEM;
-	int m = log2(MEM_SIZE);
-	int b = log2(BLOCK_SIZE);
+	Header** fl = FL_MEM;				// location of free list
+	int m = log2(MEM_SIZE);				// for claculation convenience
+	int b = log2(BLOCK_SIZE);			// for claculation convenience
 
 	// Make sure r isn't last level (ie. basicBlockSize).
 	if ( r < 0 || r >= MAX_RRANK ){
@@ -169,10 +246,12 @@ int moveDown(int r){
 	// create buddy
 	int8_t* temp_buddy = (int8_t*)index_h + (int)pow( 2, m-r-1 ) + (int)(sizeof(Header)*pow( 2, m-b-r-1 ));
 	Header* buddy = (Addr)temp_buddy;
-	buddy->NEXT = NULL;
-	buddy->size = index_h->size;
-	// add buddy to (r+1)list
-	putAfter(index_h,buddy);
+
+	buddy->NEXT = NULL;					// initialize buddy values
+	buddy->size = index_h->size;		//
+	buddy->MAGIC = MAGIC;				//
+
+	putAfter(index_h,buddy);			// add buddy to (r+1)list
 
 	//printf("\nBUDDYa_AFTER: %p\nSIZE: %d\nNEXT: %p",index_h,index_h->size,index_h->NEXT);
 	//printf("\nBUDDYb_AFTER: %p\nSIZE: %d\nNEXT: %p",buddy,buddy->size,buddy->NEXT);

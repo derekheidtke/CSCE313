@@ -47,26 +47,15 @@ int main(int argc, char ** argv) {
 			BASIC_BLOCK_SIZE,MEMORY_LENGTH);
 	//==============================================================================
 
-	// IF 0, no error; IF 1, block-memory-allocation error; IF 2, free-list allocation error
+	// initialize the allocator
 	unsigned int allocate_flag = init_allocator(BASIC_BLOCK_SIZE, MEMORY_LENGTH);
-	switch(allocate_flag){
-		case(0):
-			break;
-		case(1):
-			printf("Out of memory. Could not allocate requested amount.\n");
-			return 0;
-			break;
-		case(2):
-			printf("Out of memory. Could not allocate free list.\n");
-			return 0;
-			break;
-		default:
-			printf("\nERROR IN MEMTEST.C SWITCH STATEMENT: DEFAULT CASE SHOULD NOT HAPPED.\n");
-		
+
+	if(allocate_flag == 0){
+		printf("\nAllocator initialization error.");
+		return 0;
 	}
 	// Otherwise, run ackerman_main()
-
-	ackerman_main();
+	// ackerman_main();
 
 	return 0;
 }

@@ -30,12 +30,15 @@
   };
   typedef struct Header Header;
 
+// returns amount of memory made available if successful, 0 if error
 unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length);
 
 void release_allocator(void);
 
+// returns zero when out of memory or invalid arguments
 Addr my_malloc(unsigned int _length);
 
+// returns 0 from normal execution. non-zero if error occured.
 int my_free(Addr _a);
 
 //========================================================
