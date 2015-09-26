@@ -45,7 +45,6 @@ int my_free(Addr _a);
 //========================================================
 // HELPER FUNCTIONS
 
-
 int removeNext(Header*);
 
 int putAfter(Header*, Header*);
@@ -53,10 +52,13 @@ int putAfter(Header*, Header*);
 // splits a block from freelist of rank r
 int split(int);
 
-// joins two headers in r-tier list
-// move them to the next highest rank
-// returns 0 if successful join
-int join(int);
+// takes pointer to one buddy
+// returns address of joined buddies, NULL if unsuccessful
+Header* join(Header*);
 
+// Determines whether a header is associated with an A or B buddy
+// when given the memory tier, rr.
+// Returns 1 for 'A,' or 2 for 'B,' and 0 if unsuccessful.
+int AorB(Addr, int);
 
 #endif 

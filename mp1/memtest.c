@@ -55,7 +55,7 @@ int main(int argc, char ** argv) {
 		return 0;
 	}
 	// Otherwise, run ackerman_main()
-	// ackerman_main();
+	ackerman_main();
 
 	return 0;
 }

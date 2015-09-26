@@ -14,6 +14,8 @@
 
 #include "my_allocator.h"
 
+#define _MALLOC_FREE 1
+
 /*--------------------------------------------------------------------------*/
 /* GLOBAL VARIABLES */ 
 /*--------------------------------------------------------------------------*/
@@ -30,6 +32,7 @@
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
 /*--------------------------------------------------------------------------*/
 Addr my_malloc(unsigned int _length) {
+	#if _MALLOC_FREE == 0
 	// preliminary check:
 	// make sure the argument is within given bounds
 	if ( _length < 0 || _length > MEM_SIZE ) return 0;
@@ -60,9 +63,13 @@ Addr my_malloc(unsigned int _length) {
 	FL[rr] = FL[rr]->NEXT;
 
 	return address;
+	#else
+	return malloc(_length);
+	#endif
 }
 
 int my_free(Addr _a) {
+	#if _MALLOC_FREE == 0
 	// invalid argument
 	if( _a == NULL ) return 1;
 
@@ -80,22 +87,21 @@ int my_free(Addr _a) {
 
 	// add header back onto free list
 	header_start->NEXT = FL[rrank];
-	FL[rrank] = header_start;
+	FL[rrank] = header_start;		// added to the beginning
 
 	// find buddy and join if possible
 	int i = rrank;
-	_Bool success_flag = 1;
-	while(success_flag){
-		if(join(i) == 0){	// if join sucessful
-			success_flag = 1;
-		}else{
-			success_flag = 0;
-		}
+	Header* ih = header_start;
+	while( i >= 0 ){
+		while( (ih = join(ih)) != NULL ){}
 		i--;
-	}
+	} // After this loop, all available buddy pairs should have been joined
 
+	#else
 	free(_a);
-	return 0;
+	#endif
+
+	return 0;		// free was successful
 }
 
 //============================================================================================
@@ -123,7 +129,7 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	tempHeader->BUDDY = 'A';						//
 	free_list[0] = tempHeader;						// assign tempHeader to first entry in free_list
 
-
+/*
 	// test my_malloc() with MEM_SIZE=128 and BLOCK_SIZE=16
 	printf("\nFL_SIZE: %lu\n", sizeof(Header*)*MAX_RRANK+1);
 	printf("\nCHUNK_SIZE: %d\n", chunk_size);
@@ -168,7 +174,7 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
 	else
 		printf("\nFailed.\n");
-
+*/
 
 /*
 	// Test the splitting function only
@@ -293,8 +299,98 @@ int split(int r){
 	return 0;
 }
 
+// takes pointer to one buddy
+// returns address of joined buddies, NULL if unsuccessful
+Header* join(Header* buddy){
+	Header** FL = FL_MEM;
 
-int join(int rr){
-	//Header** FL = FL_MEM;
+	if( buddy == NULL ) return NULL;		// buddy should not be NULL
+
+	// get rr from size, and first_buddy from BUDDY
+	int rr = log2(MEM_SIZE) - log2( buddy->SIZE );
+	if( FL[rr] == NULL ) return NULL;		// FL[rr] should not be empty
+	if( rr <= 0 ) return NULL;					// can't join zeroth tier or negative
+
+	char first_buddy = buddy->BUDDY;
+	// char second_buddy = ( first_buddy == 'A' ? 'B' : 'A' );
+
+	// find the appropriate offset address for the given buddy
+	// base+sizeof(Header) if 'A' buddy; base-sizeof(Header) if 'B' buddy
+	Addr offset = NULL;
+	if( first_buddy == 'A' )
+		offset = (void*)((int8_t*)buddy + sizeof(Header));
+	else if( first_buddy == 'B' )
+		offset = (void*)((int8_t*)buddy - sizeof(Header));
+	else
+		return NULL; 						// buddy labeling error
+
+	Header* tmp2 = FL[rr];			// initialized to first in rr-list
+	Header* tmp1 = NULL;
+	Header* match = NULL;
+	_Bool found = 0;
+
+	// FIND buddy's match:
+	// check tmp2
+	if( tmp2 == offset ){			// if match is first in free list
+		found = 1;						// set found flag
+		match = tmp2;					// identify match
+	}else{							// go on to check the second
+		tmp1 = tmp2->NEXT;				// tmp1 will always be after tmp2
+		if (tmp1 == NULL) return NULL;	// make sure a second entry exists
+	}
+
+	// check tmp1
+	if( !found && tmp1->NEXT == offset ){	// if match is second in free list
+		found = 1;									// set found flag
+		match = tmp1;								// identify match
+	}
+
+	// do this if not found in first or second entry:
+	// iterate through linked list to find buddy's match
+	while( !found && tmp1->NEXT != NULL ){ 	// loop while !(found or at_end)
+		if( tmp1 == offset ){					// if offset matches free block
+			found = 1;								// set found flag
+			match = tmp1;							// identify match
+			break;
+		}
+		tmp1 = tmp1->NEXT;		// increment both pointers
+		tmp2 = tmp2->NEXT;		//
+	} 	
+	if( match == NULL ) return NULL;
+		// After this, match should be found (if it exists)
+		// and tmp2 should be the header immediately before the match.
+		// First buddy should always be first in the list.
+
+	// remove both buddies from free list and add 'A' buddy to (r-1) list
+	if( removeNext(tmp2) != 0 )	// remove the match
+		return NULL;			//
+
+	FL[rr] = buddy->NEXT;		// remove first buddy
+
+	// determine which buddy is which
+	Header* A = ( first_buddy == 'A' ? buddy : match );
+	Header* B = ( first_buddy == 'B' ? buddy : match );
+	if( A->BUDDY == B->BUDDY ) return NULL;		// should not happen
+
+	// add A buddy to (rr-1) list
+	Header* temp = FL[rr-1];
+	FL[rr-1] = A;
+	A->NEXT = temp;
+
+	int AOrB = AorB( (Addr)A, rr-1 );
+	if     ( AOrB == 0 )
+		return NULL;					// unsuccessful
+	else if( AOrB == 1 )
+		A->BUDDY = 'A';
+	else if( AOrB == 2 )
+		A->BUDDY = 'B';
+
+	return A;
+}
+
+// Determines whether a header is associated with an A or B buddy
+// when given the memory tier, rr.
+// Returns 1 for 'A,' or 2 for 'B,' and 0 if unsuccessful.
+int AorB(Addr header, int rr){
 	return 0;
 }
