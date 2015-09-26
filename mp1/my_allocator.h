@@ -25,8 +25,9 @@
   struct Header
   {
     Addr NEXT;
-    int size;
+    int SIZE;
     int MAGIC;
+    char BUDDY;   // allowable values: 'A' or 'B'
   };
   typedef struct Header Header;
 
@@ -49,9 +50,13 @@ int removeNext(Header*);
 
 int putAfter(Header*, Header*);
 
-int moveDown(int);
+// splits a block from freelist of rank r
+int split(int);
 
-int moveUp(int, Header*);
+// joins two headers in r-tier list
+// move them to the next highest rank
+// returns 0 if successful join
+int join(int);
 
 
 #endif 
