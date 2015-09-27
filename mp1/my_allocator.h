@@ -14,6 +14,7 @@
 #define _my_allocator_h_
 
 #include <math.h>
+#include <stdint.h>
 #include "apue.h"
 #include "ackerman.h"
 /*--------------------------------------------------------------------------*/
@@ -49,8 +50,10 @@ int removeNext(Header*);
 
 int putAfter(Header*, Header*);
 
-// splits a block from freelist of rank r
-int split(int);
+// Find first free r-block,
+// move it to the (r+1)-list and create its buddy
+// return address of split 'A' buddy, NULL if error
+Header* split(int);
 
 // takes pointer to one buddy
 // returns address of joined buddies, NULL if unsuccessful
@@ -60,5 +63,7 @@ Header* join(Header*);
 // when given the memory tier, rr.
 // Returns 1 for 'A,' or 2 for 'B,' and 0 if unsuccessful.
 int AorB(Addr, int);
+
+void print_fl();
 
 #endif 
