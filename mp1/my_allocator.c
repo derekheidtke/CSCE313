@@ -51,26 +51,53 @@ Addr my_malloc(unsigned int _length) {
 	int rr = log2(MEM_SIZE)-r;		// rr is relative rank. (ie. the freelist index of the requested block size)
 
 	int i = rr-1;
-	printf("\nREL_RANK(ABS): %d(%d)", rr,(int)(log2(MEM_SIZE)-rr) );
-	while(FL[rr] == NULL){	// while the rr tier is empty
-			printf("\nINDEX: %d", i);
-		if ( i < 0 ){
-			printf("\nERROR IN MY_MALLOC(): INDEX BECAME NEGATIVE (OUT OF MEMORY).\n");
-			return 0;		// out of memory
+	// printf("\nREL_RANK(ABS): %d(%d)", rr,(int)(log2(MEM_SIZE)-rr) );
+	Header* nexth = NULL;
+
+	// find closet available rank to requested rank
+	while(1){
+		if( i < 0 ){
+			printf("\nERROR IN MY_MALLOC(): NO AVAILABLE BLOCKS ON FREELIST (OUT OF MEMORY).");
+			printf("\nREQUESTED: %6x(%6x)\n",_length,(int)pow(2,r));
+			list_lists();
+			return NULL;
 		}
-		if(FL[i] == NULL)			// if ith level empty
-			i--;						// go up to next level
-		else{						// else
-			split(i);				// split block in ith level; add two blocks to i+1 level
-			i++;						// move back down to split next block if necessary
+		if(FL[i] != NULL){		// if ith list is not empty
+			break;					// break and don't change i
 		}
+		i--;					// go to next lower level
 	}
+	// split until requested rank is available
+	nexth = FL[i];
+	while(FL[rr] == NULL){		// while requested level is empty
+		nexth = split( log2( MEM_SIZE/(nexth->SIZE) ) );	// split
+	}
+
+
+	// while(FL[rr] == NULL){				// while the rr tier is empty
+	// 		printf("\nINDEX: %d", i);
+	// 	if ( i < 0 ){
+	// 		printf("\nERROR IN MY_MALLOC(): INDEX BECAME NEGATIVE (OUT OF MEMORY).\n");
+	// 		return 0;		// out of memory
+	// 	}
+	// 	if(FL[i] == NULL)			// if ith level empty
+	// 		i--;						// go up to next level
+	// 	else{						// else
+	// 		split(i);				// split block in ith level; add two blocks to i+1 level
+	// 		i++;						// move back down to split next block if necessary
+	// 	}
+	// }
+
+
 	// After this, the rr tier should have available space
 	// So, give first available block to user
 	address =  (Addr)( (int8_t*)(FL[rr]) + (int)sizeof(Header) );	// give user the memory after the header
 	// remove given block from free list
 	FL[rr] = FL[rr]->NEXT;
 
+		if (address == NULL){
+			printf("\nMY_MALLOC() RETURNED A NULL.");
+		}
 		return address;
 	#else
 		return malloc(_length);
@@ -137,7 +164,7 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 
 	// Initialize linked list structure
 	int free_list_size = sizeof(Header*)*(MAX_RRANK+1);
-	if ( (FL_MEM = malloc()) == NULL ){
+	if ( (FL_MEM = malloc(free_list_size)) == NULL ){
 		printf("\nERROR IN INIT_ALLOCATOR(): FREELIST UNABLE TO BE ALLOCATED.\n");
 		return 2;											// Out of memory error
 	}
@@ -156,14 +183,38 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	printf("\nSIZEOF_HEADER: %lu", sizeof(Header));
 	printf("\nSIZEOF_HEADER*: %lu", sizeof(Header*));
 	printf("\nMEMORY_START: %p", MEMORY);
-
 /*
-	// test split and join with MEM_SIZE=128 and BLOCK_SIZE=16
-	printf("\n=========================SPLIT=TIER=0===============================\n");
-	Header* tmp = split(0);
-	printf("\n=========================JOIN=TIER=1===============================\n");
-	join(tmp);
+	Header* tmph[20];
+	Addr    tmpa[20];
+	list_lists();
+	split(0);
+	list_lists();
+	split(1);
+	split(1);
+	list_lists();
+	tmph[0] = split(2);
+	tmph[1] = tmph[0]->NEXT;
+	tmph[2] = split(2);
+	tmph[3] = tmph[2]->NEXT;
+	tmph[4] = split(2);
+	tmph[5] = tmph[4]->NEXT;
+	tmph[6] = split(2);
+	tmph[7] = tmph[6]->NEXT;
+	list_lists();
 
+	char buddy[10];
+	int AOrB[10];
+	for(int i = 0; i < 8 ; i++){
+		AOrB[i] = AorB(tmph[i],3);
+		if     ( AOrB[i] == 0 )
+			printf("\nUNSUCCESSFUL");					// unsuccessful
+		else if( AOrB[i] == 1 )
+			buddy[i] = 'A';
+		else if( AOrB[i] == 2 )
+			buddy[i] = 'B';
+		printf("\nHEADER_ADDR: %15p   BUDDINESS: %2c",tmph[i],tmph[i]->BUDDY);
+	}
+	list_lists();
 */
 
 
@@ -207,43 +258,6 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
 	else
 		printf("\nFailed.\n");
-*/
-
-/*
-	// Test the splitting function only
-	// test with MEM_SIZE=128 and BLOCK_SIZE=16
-	printf("\nFL_SIZE: %d\n", sizeof(Header*)*MAX_RRANK+1);
-	printf("\nCHUNK_SIZE: %d\n", chunk_size);
-	printf("\nSIZEOF_HEADER: %d\n", sizeof(Header));
-	printf("\n\n");
-
-	printf("SPLIT_RANK_0\n");
-	split(0);
-	printf("\n\n");
-
-	printf("SPLIT_RANK_1\n");
-	split(1);
-	printf("SPLIT_RANK_1\n");
-	split(1);
-	printf("SPLIT_RANK_1(shouldn't work)\n");
-	split(1);
-	printf("\n\n");
-
-	printf("SPLIT_RANK_2\n");
-	split(2);
-	printf("SPLIT_RANK_2\n");
-	split(2);
-	printf("SPLIT_RANK_2\n");
-	split(2);
-	printf("SPLIT_RANK_2\n");
-	split(2);
-	printf("SPLIT_RANK_2(shouldn't work)\n");
-	split(2);
-	printf("\n\n");
-
-	printf("SPLIT_RANK_3(shouldn't work)\n");
-	split(3);
-	printf("\n\n");
 */
 	
 	return chunk_size;
@@ -300,6 +314,7 @@ Header* split(int r){
 	Header** FL = FL_MEM;				// location of free list
 	int m = log2(MEM_SIZE);				// for claculation convenience
 	int b = log2(BLOCK_SIZE);			// for claculation convenience
+	int r_block_size = pow( 2, m-r-1 ) + (int)(sizeof(Header)*pow( 2, m-b-r-1 ));
 
 	// Make sure r isn't last level (ie. basicBlockSize).
 	if ( r < 0 || r >= MAX_RRANK ){
@@ -329,8 +344,7 @@ Header* split(int r){
 	// make index_h into 'A' buddy
 	index_h->BUDDY = 'A';			// becomes 'A' buddy in new list regardless of previous value
 	// create buddy
-	int8_t* temp_buddy = (int8_t*)index_h + (int)pow( 2, m-r-1 ) + (int)(sizeof(Header)*pow( 2, m-b-r-1 ));
-	Header* buddy = (Addr)temp_buddy;
+	Header* buddy = (void*)((int8_t*)index_h + r_block_size);
 
 	buddy->NEXT = NULL;					// initialize buddy values
 	buddy->SIZE = index_h->SIZE;		//
@@ -379,7 +393,11 @@ Header* join(Header* buddy){
 		printf("\nERROR IN JOIN(): LIST IS EMPTY.\n");
 		return NULL;		// FL[rr] should not be empty
 	}
-	if( rr <= 0 ){
+	if( rr == 0 ){
+		// printf("\nERROR IN JOIN(): RANK=0. CAN'T JOIN ELEMENT FROM ZEROTH RANK.\n"); // allowable
+		return NULL;					// can't join zeroth tier or negative
+	}
+	if( rr < 0 ){
 		printf("\nERROR IN JOIN(): INDEX BECAME NEGATIVE.\n");
 		return NULL;					// can't join zeroth tier or negative
 	}
@@ -509,18 +527,53 @@ int AorB(Addr header, int rr){
 	else return 0;					// else, i don't even know
 }
 
-void printf_fl(){
+void list_lists(){
 	Header** FL = FL_MEM;
+	int counter = 0;
 
-	Header* tmph = NULL;
-
-
+	Header* tmph = FL[0];
+	printf("\n\n");
 	for(int i = 0; i < MAX_RRANK; i++){
+		counter = 0;
+		tmph = FL[i];
 		printf("[%2d]-", i);
-		while(tmph->NEXT != NULL){
-			printf("->:%15p:%10x:%2c:%2d:%15p:--",tmph,tmph->SIZE,tmph->BUDDY,tmph->NEXT,(tmph->MAGIC==MAGIC));
-			tmph = tmph->NULL;
+		if(tmph != NULL){		// if list not empty
+			printf("->[%15p %6x %1c %1d]--",tmph,tmph->SIZE,tmph->BUDDY,(tmph->MAGIC==MAGIC));
+			counter++;
+			if(counter > 3 ){
+				printf("\n     ");
+				counter = 0;
+			}
+		}
+		else{					// if list is empty, go to next tier
+			printf("\n");
+			continue;
+		}
+		if(tmph->NEXT != NULL)	// if there is a second header
+			tmph = tmph->NEXT;
+		else{					// if not, go to next tier
+			printf("\n");
+			continue;
+		}
+		while(tmph->NEXT != NULL){		// while not on last header
+			if( counter >= 4 ){
+				printf("\n     ");
+			}
+			printf("->[%15p %6x %1c %1d]--",tmph,tmph->SIZE,tmph->BUDDY,(tmph->MAGIC==MAGIC));
+			counter++;
+			if(counter > 3 ){
+				printf("\n     ");
+				counter = 0;
+			}
+			tmph = tmph->NEXT;
+		}
+		printf("->[%15p %6x %1c %1d]--",tmph,tmph->SIZE,tmph->BUDDY,(tmph->MAGIC==MAGIC));
+		counter++;
+		if(counter > 3 ){
+			printf("\n     ");
+			counter = 0;
 		}
 		printf("\n");
 	}
+	return;
 }

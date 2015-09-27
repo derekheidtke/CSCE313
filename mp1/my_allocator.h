@@ -64,6 +64,6 @@ Header* join(Header*);
 // Returns 1 for 'A,' or 2 for 'B,' and 0 if unsuccessful.
 int AorB(Addr, int);
 
-void print_fl();
+void list_lists();
 
 #endif 

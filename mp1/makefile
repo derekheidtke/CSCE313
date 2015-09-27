@@ -3,13 +3,13 @@
 all: memtest
 
 ackerman.o: ackerman.c ackerman.h 
-	gcc -Wall -c -g ackerman.c
+	gcc -Wall -std=c99 -c -g ackerman.c
 
 my_allocator.o: my_allocator.c my_allocator.h
-	gcc -Wall -c -g my_allocator.c
+	gcc -Wall -std=c99 -c -g my_allocator.c
 
 error.o: error.c
-	gcc -Wall -c -g error.c
+	gcc -Wall -std=c99 -c -g error.c
 
 memtest: memtest.c ackerman.o my_allocator.o error.o 
 	gcc -o memtest memtest.c ackerman.o my_allocator.o error.o -lm
