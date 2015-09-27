@@ -49,6 +49,7 @@ Addr my_malloc(unsigned int _length) {
 	// find the absolute rank of the block the user wants
 	int r = ceil( log2(_length) );	// r is absolute rank.
 	int rr = log2(MEM_SIZE)-r;		// rr is relative rank. (ie. the freelist index of the requested block size)
+	printf("\nREQUESTED: %6x(%6x)\n",_length,(int)pow(2,r));
 
 	int i = rr-1;
 	// printf("\nREL_RANK(ABS): %d(%d)", rr,(int)(log2(MEM_SIZE)-rr) );
@@ -58,9 +59,10 @@ Addr my_malloc(unsigned int _length) {
 	while(1){
 		if( i < 0 ){
 			printf("\nERROR IN MY_MALLOC(): NO AVAILABLE BLOCKS ON FREELIST (OUT OF MEMORY).");
-			printf("\nREQUESTED: %6x(%6x)\n",_length,(int)pow(2,r));
+			printf("\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 			list_lists();
-			return NULL;
+			printf("\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+			return 0;
 		}
 		if(FL[i] != NULL){		// if ith list is not empty
 			break;					// break and don't change i
@@ -73,22 +75,6 @@ Addr my_malloc(unsigned int _length) {
 		nexth = split( log2( MEM_SIZE/(nexth->SIZE) ) );	// split
 	}
 
-
-	// while(FL[rr] == NULL){				// while the rr tier is empty
-	// 		printf("\nINDEX: %d", i);
-	// 	if ( i < 0 ){
-	// 		printf("\nERROR IN MY_MALLOC(): INDEX BECAME NEGATIVE (OUT OF MEMORY).\n");
-	// 		return 0;		// out of memory
-	// 	}
-	// 	if(FL[i] == NULL)			// if ith level empty
-	// 		i--;						// go up to next level
-	// 	else{						// else
-	// 		split(i);				// split block in ith level; add two blocks to i+1 level
-	// 		i++;						// move back down to split next block if necessary
-	// 	}
-	// }
-
-
 	// After this, the rr tier should have available space
 	// So, give first available block to user
 	address =  (Addr)( (int8_t*)(FL[rr]) + (int)sizeof(Header) );	// give user the memory after the header
@@ -98,6 +84,7 @@ Addr my_malloc(unsigned int _length) {
 		if (address == NULL){
 			printf("\nMY_MALLOC() RETURNED A NULL.");
 		}
+		list_lists();
 		return address;
 	#else
 		return malloc(_length);
@@ -126,6 +113,7 @@ int my_free(Addr _a) {
 
 	// get relative rank from header size
 	int rrank = log2(MEM_SIZE)-log2(header_start->SIZE);
+	printf("\nRETURNING: %6x(%6x)\n",header_start,header_start->SIZE);
 
 	// add header back onto free list
 	header_start->NEXT = FL[rrank];
@@ -143,7 +131,7 @@ int my_free(Addr _a) {
 	#else
 		free(_a);
 	#endif
-
+	list_lists();
 	return 0;		// free was successful
 }
 
@@ -533,7 +521,7 @@ void list_lists(){
 
 	Header* tmph = FL[0];
 	printf("\n\n");
-	for(int i = 0; i < MAX_RRANK; i++){
+	for(int i = 0; i < MAX_RRANK+1; i++){
 		counter = 0;
 		tmph = FL[i];
 		printf("[%2d]-", i);
