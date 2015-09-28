@@ -1,7 +1,7 @@
 
 #include "my_allocator.h"
 
-#define OPTSTR "b:s:"	// getopt() option list
+#define OPTSTR "b:s:o"	// getopt() option list
 
 int convert(int n);
 
@@ -23,7 +23,7 @@ int main(int argc, char ** argv) {
 	// power of two
 	int c;
 	set_output_flag(0);
-	while( (c = getopt(argc, argv, "b:s:o")) != -1 ){
+	while( (c = getopt(argc, argv, OPTSTR)) != -1 ){
 		switch(c){
 			case 'b':
 					 b_flag = 1;

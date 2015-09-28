@@ -91,7 +91,7 @@ Addr my_malloc(unsigned int _length) {
 		if(_OUTPUT) list_lists();
 		return address;
 	#else
-		return malloc(_length);
+		return malloc(_length); // FOR TESTING ONLY. IM NOT CHEATING
 	#endif
 }
 
@@ -136,7 +136,7 @@ int my_free(Addr _a) {
 	} // After this loop, all available buddy pairs should have been joined
 
 	#else
-		free(_a);
+		free(_a);	// FOR TESTING ONLY. IM NOT CHEATING
 	#endif
 	if(_OUTPUT) list_lists();
 	return 0;		// free was successful
