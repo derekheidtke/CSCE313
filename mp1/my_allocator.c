@@ -29,6 +29,7 @@
 										// free list
 	unsigned int 			MAGIC = 504649209;	// number to verify that a header is actually a header
 												// Used during my_free().
+	_Bool 					_OUTPUT;	// Used to signal extra output
 /*--------------------------------------------------------------------------*/
 /* FUNCTIONS FOR MODULE MY_ALLOCATOR */
 /*--------------------------------------------------------------------------*/
@@ -49,25 +50,28 @@ Addr my_malloc(unsigned int _length) {
 	// find the absolute rank of the block the user wants
 	int r = ceil( log2(_length) );	// r is absolute rank.
 	int rr = log2(MEM_SIZE)-r;		// rr is relative rank. (ie. the freelist index of the requested block size)
-	printf("\nREQUESTED: %6x(%6x)\n",_length,(int)pow(2,r));
+	
+	if(_OUTPUT) printf("\nREQUESTED BLOCK SIZE: 0x%6x\n",(int)pow(2,r));
 
-	int i = rr-1;
+	int i = rr+1;
 	// printf("\nREL_RANK(ABS): %d(%d)", rr,(int)(log2(MEM_SIZE)-rr) );
 	Header* nexth = NULL;
 
 	// find closet available rank to requested rank
 	while(1){
+		i--;					// go to next lower level
 		if( i < 0 ){
-			printf("\nERROR IN MY_MALLOC(): NO AVAILABLE BLOCKS ON FREELIST (OUT OF MEMORY).");
-			printf("\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-			list_lists();
-			printf("\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+			// printf("\nERROR IN MY_MALLOC(): NO AVAILABLE BLOCKS ON FREELIST (OUT OF MEMORY)."); // allowable
+			if(_OUTPUT){
+				printf("VVREQUEST=NOT=FULFILLEDVVVVVVVVVVVVVVVVVVVVVVV");
+				list_lists();
+				printf("^^REQUEST=NOT=FULFILLED^^^^^^^^^^^^^^^^^^^^^^^");
+			}
 			return 0;
 		}
 		if(FL[i] != NULL){		// if ith list is not empty
 			break;					// break and don't change i
 		}
-		i--;					// go to next lower level
 	}
 	// split until requested rank is available
 	nexth = FL[i];
@@ -84,7 +88,7 @@ Addr my_malloc(unsigned int _length) {
 		if (address == NULL){
 			printf("\nMY_MALLOC() RETURNED A NULL.");
 		}
-		list_lists();
+		if(_OUTPUT) list_lists();
 		return address;
 	#else
 		return malloc(_length);
@@ -113,7 +117,10 @@ int my_free(Addr _a) {
 
 	// get relative rank from header size
 	int rrank = log2(MEM_SIZE)-log2(header_start->SIZE);
-	printf("\nRETURNING: %6x(%6x)\n",header_start,header_start->SIZE);
+	if(_OUTPUT){
+		printf("\nRETURNING HEADER: %6p",header_start);
+		printf("\n      BLOCK SIZE: 0x%6x\n",header_start->SIZE);
+	}
 
 	// add header back onto free list
 	header_start->NEXT = FL[rrank];
@@ -131,7 +138,7 @@ int my_free(Addr _a) {
 	#else
 		free(_a);
 	#endif
-	list_lists();
+	if(_OUTPUT) list_lists();
 	return 0;		// free was successful
 }
 
@@ -165,88 +172,13 @@ unsigned int init_allocator(unsigned int _basic_block_size, unsigned int _length
 	tempHeader->BUDDY = 'A';						//
 	free_list[0] = tempHeader;						// assign tempHeader to first entry in free_list
 
-	// test my_malloc() with MEM_SIZE=128 and BLOCK_SIZE=16
-	printf("\nFL_SIZE: %lu", sizeof(Header*)*(MAX_RRANK+1));
-	printf("\nCHUNK_SIZE: %d", chunk_size);
-	printf("\nSIZEOF_HEADER: %lu", sizeof(Header));
-	printf("\nSIZEOF_HEADER*: %lu", sizeof(Header*));
-	printf("\nMEMORY_START: %p", MEMORY);
-/*
-	Header* tmph[20];
-	Addr    tmpa[20];
-	list_lists();
-	split(0);
-	list_lists();
-	split(1);
-	split(1);
-	list_lists();
-	tmph[0] = split(2);
-	tmph[1] = tmph[0]->NEXT;
-	tmph[2] = split(2);
-	tmph[3] = tmph[2]->NEXT;
-	tmph[4] = split(2);
-	tmph[5] = tmph[4]->NEXT;
-	tmph[6] = split(2);
-	tmph[7] = tmph[6]->NEXT;
-	list_lists();
-
-	char buddy[10];
-	int AOrB[10];
-	for(int i = 0; i < 8 ; i++){
-		AOrB[i] = AorB(tmph[i],3);
-		if     ( AOrB[i] == 0 )
-			printf("\nUNSUCCESSFUL");					// unsuccessful
-		else if( AOrB[i] == 1 )
-			buddy[i] = 'A';
-		else if( AOrB[i] == 2 )
-			buddy[i] = 'B';
-		printf("\nHEADER_ADDR: %15p   BUDDINESS: %2c",tmph[i],tmph[i]->BUDDY);
+	if(_OUTPUT){
+		printf("\nFL_SIZE: %d", free_list_size);
+		printf("\nCHUNK_SIZE: %d", chunk_size);
+		printf("\nSIZEOF_HEADER: %lu", sizeof(Header));
+		printf("\nSIZEOF_HEADER*: %lu", sizeof(Header*));
+		printf("\nMEMORY_START: %p\n\n", MEMORY);
 	}
-	list_lists();
-*/
-
-
-/*
-	Addr* test_arr = malloc(1*sizeof(Addr));
-	int n = 0;
-
-	
-	n = 15;
-	if ( (test_arr[0] = my_malloc(n)) != NULL )
-		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
-	else
-		printf("\nFailed.\n");
-
-	n = 32;
-	if ( (test_arr[0] = my_malloc(n)) != NULL )
-		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
-	else
-		printf("\nFailed.\n");
-
-	n = 32;
-	if ( (test_arr[0] = my_malloc(n)) != NULL )
-		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
-	else
-		printf("\nFailed.\n");
-
-	n = 32;
-	if ( (test_arr[0] = my_malloc(n)) != NULL )
-		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
-	else
-		printf("\nFailed.\n");
-
-	n = 15;
-	if ( (test_arr[0] = my_malloc(n)) != NULL )
-		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
-	else
-		printf("\nFailed.\n");
-
-	n = 2;
-	if ( (test_arr[0] = my_malloc(n)) != NULL )
-		printf("\nAcquired %d bytes: %p\n", n, test_arr[0]);
-	else
-		printf("\nFailed.\n");
-*/
 	
 	return chunk_size;
 }
@@ -316,11 +248,7 @@ Header* split(int r){
 	}
 
 	Header* index_h = FL[r];		// index_h set to point to first r-header
-	// printf("\nA_BEFORE_SPLIT_ADDR: %p", index_h);
-	// printf("\nA_BEFORE_SPLIT_NEXT: %p", index_h->NEXT);
-	// printf("\nA_BEFORE_SPLIT_SIZE: %d", index_h->SIZE);
-	// printf("\nA_BEFORE_SPLIT_BUDDY: %c", index_h->BUDDY);
-	// printf("\nA_BEFORE_SPLIT_MAGIC: %d\n", index_h->MAGIC);
+	
 	// remove index_h from r-list; **works when tier has one entry
 	FL[r] = index_h->NEXT;
 	// add index_h to (r+1)-list; adjust size to match new tier
@@ -341,18 +269,6 @@ Header* split(int r){
 
 	putAfter(index_h,buddy);			// add buddy to (r+1)list
 
-	// printf("\nA_AFTER_SPLIT_ADDR: %p", index_h);
-	// printf("\nA_AFTER_SPLIT_NEXT: %p", index_h->NEXT);
-	// printf("\nA_AFTER_SPLIT_SIZE: %d", index_h->SIZE);
-	// printf("\nA_AFTER_SPLIT_BUDDY: %c", index_h->BUDDY);
-	// printf("\nA_AFTER_SPLIT_MAGIC: %d\n", index_h->MAGIC);
-
-	// printf("\nB_AFTER_SPLIT_ADDR: %p", buddy);
-	// printf("\nB_AFTER_SPLIT_NEXT: %p", buddy->NEXT);
-	// printf("\nB_AFTER_SPLIT_SIZE: %d", buddy->SIZE);
-	// printf("\nB_AFTER_SPLIT_BUDDY: %c", buddy->BUDDY);
-	// printf("\nB_AFTER_SPLIT_MAGIC: %d\n", buddy->MAGIC);
-
 	return index_h;
 }
 
@@ -362,12 +278,6 @@ Header* join(Header* buddy){
 	Header** FL = FL_MEM;
 	int m = log2(MEM_SIZE);
 	int b = log2(BLOCK_SIZE);
-
-	// printf("\nBUDDY1_ADDR: %p", buddy);
-	// printf("\nBUDDY1_NEXT: %p", buddy->NEXT);
-	// printf("\nBUDDY1_SIZE: %d", buddy->SIZE);
-	// printf("\nBUDDY1_BUDDY: %c", buddy->BUDDY);
-	// printf("\nBUDDY1_MAGIC: %d\n", buddy->MAGIC);
 
 	if( buddy == NULL ){
 		printf("\nERROR IN JOIN(): JOIN() WAS PASSED A NULL* AS ARGUMENT.\n");
@@ -425,9 +335,6 @@ Header* join(Header* buddy){
 		}
 	}
 
-	// printf("\nOFFSET_ADDRESS: %p", offset);
-	// printf("\ntmp1_ADDRESS: %p\n", tmp1);
-
 	// check tmp1
 	if( !found && tmp1 == offset ){	// if match is second in free list
 		found = 1;									// set found flag
@@ -481,17 +388,7 @@ Header* join(Header* buddy){
 		A->BUDDY = 'A';
 	else if( AOrB == 2 )
 		A->BUDDY = 'B';
-	// printf("\nMATCH_ADDR: %p", match);
-	// printf("\nMATCH_NEXT: %p", match->NEXT);
-	// printf("\nMATCH_SIZE: %d", match->SIZE);
-	// printf("\nMATCH_BUDDY: %c", match->BUDDY);
-	// printf("\nMATCH_MAGIC: %d\n", match->MAGIC);
 
-	// printf("\nJOINED_ADDR: %p", A);
-	// printf("\nJOINED_NEXT: %p", A->NEXT);
-	// printf("\nJOINED_SIZE: %d", A->SIZE);
-	// printf("\nJOINED_BUDDY: %c", A->BUDDY);
-	// printf("\nJOINED_MAGIC: %d\n", A->MAGIC);
 	return A;
 }
 
@@ -520,7 +417,7 @@ void list_lists(){
 	int counter = 0;
 
 	Header* tmph = FL[0];
-	printf("\n\n");
+	printf("FL[i]->[  HEADER_ADDR  SIZE A/B OK]->\n---------------------------------------\n");
 	for(int i = 0; i < MAX_RRANK+1; i++){
 		counter = 0;
 		tmph = FL[i];
@@ -561,7 +458,12 @@ void list_lists(){
 			printf("\n     ");
 			counter = 0;
 		}
-		printf("\n");
+		printf("\n\n");
 	}
 	return;
+}
+
+void set_output_flag(_Bool flag){
+	_OUTPUT = flag;
+	// printf("\nOUTPUT_FLAG SET TO %d\n", (int)flag);
 }

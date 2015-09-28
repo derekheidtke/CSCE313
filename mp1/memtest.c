@@ -16,12 +16,14 @@ int main(int argc, char ** argv) {
 	unsigned int MEMORY_LENGTH;
 	int b_flag = 0,		// Used to provide default argument values if
 		s_flag = 0;	// none are given.
+	_Bool o_flag = 0;
 	opterr = 0;			// Disable getopt() error message.
 
 	// gets the arguments from the command line and rounds them up to the nearest
 	// power of two
 	int c;
-	while( (c = getopt(argc, argv, "b:s:")) != -1 ){
+	set_output_flag(0);
+	while( (c = getopt(argc, argv, "b:s:o")) != -1 ){
 		switch(c){
 			case 'b':
 					 b_flag = 1;
@@ -31,8 +33,12 @@ int main(int argc, char ** argv) {
 					 s_flag = 1;
 					 MEMORY_LENGTH = convert(atoi(optarg));
 					 break;
+			case 'o':
+					 set_output_flag(1);
+					 break;
 		};
 	}
+
 	// Provide default arguments if needed.
 	if ( !(b_flag) ){
 		BASIC_BLOCK_SIZE = 128; // Set default to 128 B

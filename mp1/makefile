@@ -18,7 +18,7 @@ def:
 	./memtest
 
 test:
-	./memtest -s 128 -b 16
+	./memtest -s 1048576 -b 1024
 
 clean:
 	rm *.o

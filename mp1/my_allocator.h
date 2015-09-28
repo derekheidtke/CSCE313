@@ -66,4 +66,6 @@ int AorB(Addr, int);
 
 void list_lists();
 
+void set_output_flag(_Bool);
+
 #endif 
