@@ -1,0 +1,246 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Homework 1
+\begin_inset Newline newline
+\end_inset
+
+CSCE 313-504
+\end_layout
+
+\begin_layout Author
+Derek Heidtke
+\end_layout
+
+\begin_layout Subsubsection*
+1.
+ Which of the following instructions should be privileged?
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set time-of-day clock.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Read time-of-day clock.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Clear memory.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Disable interrupts.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Change the memory map.
+\end_layout
+
+\begin_layout Standard
+Set time-of-day clock, clear memory, disable interrupts, and change memory
+ map.
+ Because all these instructions could be used maliciously or inadvertently
+ to affect the execution of other applications or kernel.
+\end_layout
+
+\begin_layout Subsubsection*
+2.
+ What is the main advantage of multiprogramming?
+\end_layout
+
+\begin_layout Standard
+Before multiprogramming, user's had to submit their applications to batch
+ systems where programs ran one at a time.
+ Multiprogramming promotes better system utilization by allowing applications
+ to stop execution (for various reasons: preemption, waiting for I/O, etc.)
+ and give control over to other applications.
+ This also allowed for the development of the operating system, because
+ the idea of an operating system doesn't really make sense for batch systems.
+\end_layout
+
+\begin_layout Subsubsection*
+3.
+ When a user program makes a system call to read or write a disk file, it
+ provides indication of which file it wants, a pointer to the data buffer,
+ and the count.
+ Control is then transferred to the OS, which calls the appropriate driver.
+ Suppose that the driver starts the disk and then terminates until an interrupt
+ occurs.
+ In the case of reading from the disk, obviously the caller will have to
+ be blocked (because there is no data for it).
+ What about the case of writing to the disk? Need the caller be blocking
+ awaiting completion of the disk transfer?
+\end_layout
+
+\begin_layout Standard
+No, the caller can place the data into an output buffer.
+ At that point, the application doesn't need the data anymore and can continue
+ executing, and the I/O device will get to the buffer when it's ready.
+\end_layout
+
+\begin_layout Subsubsection*
+4.
+ Why are the locations of interrupt handlers generally not stored in a linked
+ list?
+\end_layout
+
+\begin_layout Standard
+Interrupt handling needs to be very fast.
+ If handler locations are stored in a predefined vector (interrupt vector
+ table), access time is O(1); whereas if they are stored in a linked list,
+ access time falls to O(n), where n is the number of links that must be
+ traversed to find the correct interrupt handler.
+\end_layout
+
+\begin_layout Subsubsection*
+5.
+ What are two differences between user level threads and kernel level threads?
+ Under what circumstances is one type better than the other?
+\end_layout
+
+\begin_layout Standard
+User-threads can run exclusively without triggering context switch (due
+ to needing to access the kernel).
+ Kernel-threads can run privileged instructions without having to trigger
+ a trap/trap handler like a user-thread would have to do.
+\end_layout
+
+\begin_layout Standard
+When a process solely needs to do a lot of computation, a user-thread will
+ be faster; but, when privileged instructions are involved kernel-threads
+ are the only ones that can execute them.
+\end_layout
+
+\begin_layout Subsubsection*
+6.
+ Describe the difference of degree to which the following scheduling algorithms
+ discriminate in favor of short processes:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+First-Come-First-Serve
+\end_layout
+
+\begin_layout Standard
+This algorithm is the least efficient for short processes because they will
+ always have to wait after a long process.
+ Even after the process gets to have some execution time, it will likely
+ end up behind another long process (convoying).
+ This causes many small processes to repeatedly pile up behind a long process.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Round-Robin
+\end_layout
+
+\begin_layout Standard
+This algorithm greatly favors short processes, specifically processes that
+ are shorter than the preemption time quantum.
+ If a process cannot finish in that amount of time, it will have to wait
+ for it's next turn to come around.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Multilevel Feedback Queues
+\end_layout
+
+\begin_layout Standard
+This algorithm is a balance between the previous two; whether this scheme
+ favors a short process or not depends almost entirely on its priority.
+ If it has low priority, it must wait in the low tiers until it can run
+ or until it is aged to a higher tier.
+ If it is high priority, it will likely get to execute very quickly.
+\end_layout
+
+\begin_layout Standard
+That being said, there is a slight favor towards short processes in this
+ system: when a short process has low priority, it has a greater benefit
+ of aging than does a long process (the longer the process, the more likely
+ it is to be demoted).
+ Also, if a short process has high priority, it is more likely to finish
+ in the very short time quantum levels (and not suffer demotion) than a
+ long process.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_body
+\end_document
