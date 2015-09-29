@@ -8,54 +8,44 @@ void string_invert(std::string);
 
 int main(){
 
-	pid_t pid;
-
-	// if ((pid = fork()) < 0 ) {
-	// 	std::cout << "\nfork error";
-	// } else if ( pid == 0 ) {
-	// 	std::cout << "\nCHILD: " << pid;
-	// } else{
-	// 	std::cout << "\nPARENT: 0";
-	// }
-
-
+	pid_t 		pid;
 	std::string in_str;
 	std::string out_str;
 
-	std::cout << "\n>> String Inverter that uses fork()";
-	std::cout << "\n>> Please enter a string: ";
+	std::cerr << "\n>> String Inverter that uses fork()";
+	std::cerr << "\n>> Please enter a string: ";
 
 	std::getline(std::cin, in_str);
 
-	std::cout << "\nYOU ENTERED: " << in_str;
-	std::cout << "\n   REVERSED: ";
-	fflush(NULL);
+	std::cerr << "\n\tYOU ENTERED: " << in_str << std::endl;
 
 	string_invert(in_str);
 
-	std::cout;// << std::endl;
 	return 0;
 }
 
-void string_invert(std::string forward_str){
-	int 	index = -1;
-	pid_t 	pid;
-	int status;
+void string_invert(std::string IN){
 
-	//std::cout << forward_str[0] << std::endl;
+	std::cerr << "\tREVERSED: ";
+	
+	std::string OUT   = std::string("");
+	int 		SIZE  = IN.size();
+	int 		index = SIZE-1;
+	pid_t 		pid;
+	int 		status;
 
-	if( (pid = fork()) == 0 ){	// child
-		while( index < forward_str.size() ){
-			index++;
-			if ( (pid = fork()) == 0 ) {}
-			else {
-				wait(&status);
-				std::cout << forward_str[index];
-				break;
-			}
+	// fork
+	for ( int j = 0; j < SIZE; j++) {	// create SIZE number of forks
+
+		if ((pid = fork()) == 0) {		// child, break out
+			break;
+		} else {						// parent keep making children
+			wait(NULL);
+			index--;
 		}
-	} else {					// parent
-		wait(&status);
-		std::cout << std::endl;
 	}
+
+	std::cerr << IN[index];
+	if(index == 0) std::cout << std::endl << std::endl;
+	_Exit(0);
 }
