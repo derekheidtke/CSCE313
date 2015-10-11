@@ -92,7 +92,7 @@ void RequestChannel::open_write_pipe(char * _pipe_name) {
   // std::cout << _pipe_name << std::endl;
 
   // /mkfifo("");
-  wfd = open(/*_pipe_name*/"fifo_control1", O_WRONLY);
+  wfd = open(_pipe_name, O_WRONLY);
   if (wfd < 0) {
     perror("Error opening pipe for writing; exit program");
     exit(1);
@@ -135,7 +135,7 @@ RequestChannel::RequestChannel(const string _name, const Side _side) : my_name(_
     open_read_pipe(pipe_name(READ_MODE));
   } else {
     open_read_pipe(pipe_name(READ_MODE));
-    open_write_pipe(pipe_name(WRITE_MODE));
+     open_write_pipe(pipe_name(WRITE_MODE));
   }
 
 }
