@@ -60,7 +60,7 @@ char * RequestChannel::pipe_name(Mode _mode) {
   string pname = "fifo_" + my_name;
 
   if (my_side == CLIENT_SIDE) {
-    if (_mode == READ_MODE) 
+    if (_mode == READ_MODE)
       pname += "1";
     else
       pname += "2";
@@ -68,7 +68,7 @@ char * RequestChannel::pipe_name(Mode _mode) {
     /* SERVER_SIDE */
     if (_mode == READ_MODE) 
       pname += "2";
-    else 
+    else
       pname += "1";
   }
   char * result = new char[pname.size()+1];
@@ -78,7 +78,7 @@ char * RequestChannel::pipe_name(Mode _mode) {
 
 void RequestChannel::open_write_pipe(char * _pipe_name) {
 
-  //  cout << "mkfifo write pipe\n" << flush;
+  // cout << "mkfifo write pipe\n" << flush;
 
   if (mkfifo(_pipe_name, 0600) < 0) {
     if (errno != EEXIST) {
@@ -88,14 +88,17 @@ void RequestChannel::open_write_pipe(char * _pipe_name) {
   }
 
   // cout << "open write pipe\n" << flush;
+  
+  // std::cout << _pipe_name << std::endl;
 
-  wfd = open(_pipe_name, O_WRONLY);
+  // /mkfifo("");
+  wfd = open(/*_pipe_name*/"fifo_control1", O_WRONLY);
   if (wfd < 0) {
     perror("Error opening pipe for writing; exit program");
     exit(1);
   }
 
-  //  cout << "done opening write pipe\n" << flush;
+  // cout << "done opening write pipe\n" << flush;
 
 }
 
@@ -127,7 +130,6 @@ void RequestChannel::open_read_pipe(char * _pipe_name) {
 /*--------------------------------------------------------------------------*/
 
 RequestChannel::RequestChannel(const string _name, const Side _side) : my_name(_name), my_side(_side) {
-
   if (_side == SERVER_SIDE) {
     open_write_pipe(pipe_name(WRITE_MODE));
     open_read_pipe(pipe_name(READ_MODE));
@@ -139,7 +141,9 @@ RequestChannel::RequestChannel(const string _name, const Side _side) : my_name(_
 }
 
 RequestChannel::~RequestChannel() {
-  cout << "close requests channel " << my_name << endl;
+  cout << "Close requests channel: " << my_name
+       << "(" << RequestChannel::side(my_side) << ")"
+       << endl << flush;
   close(wfd);
   close(rfd);
   if (my_side == SERVER_SIDE) {

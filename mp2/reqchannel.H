@@ -52,13 +52,16 @@ public:
  
   typedef enum {READ_MODE, WRITE_MODE} Mode;
 
+  const char * side(int s){ return (s==1?"CLIENT_SIDE":"SERVER_SIDE");}
+  const char * mode(int m){ return (m==1?"WRITE_MODE":"READ_MODE");}
+
 private:
 
   string   my_name;
 
   Side     my_side;
 
-  /*  The current implementation uses named pipes. */ 
+  /*  The current implementation uses named pipes. */
 
   int wfd;
   int rfd;

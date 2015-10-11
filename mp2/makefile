@@ -1,6 +1,6 @@
 # makefile
 
-all: dataserver simpleclient
+all: dataserver client
 
 reqchannel.o: reqchannel.H reqchannel.C
 	g++ -c -g reqchannel.C
@@ -8,5 +8,10 @@ reqchannel.o: reqchannel.H reqchannel.C
 dataserver: dataserver.C reqchannel.o 
 	g++ -o dataserver dataserver.C reqchannel.o -lpthread
 
-simpleclient: simpleclient.C reqchannel.o
-	g++ -o simpleclient simpleclient.C reqchannel.o
+client: client.C reqchannel.o
+	g++ -o client client.C reqchannel.o
+
+
+
+clean:
+	rm ./*.o ./dataserver ./client ./fifo_control*
