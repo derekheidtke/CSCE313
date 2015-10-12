@@ -33,6 +33,7 @@ void print_time_diff(struct timeval * tp1, struct timeval * tp2) {
 
 const char * fake_request(const char *);
 
+
 string int2string(int number) {
 	stringstream ss;//create a stringstream
 	ss << number;//add number to the stream
@@ -97,6 +98,7 @@ int main(int argc, char * argv[]) {
 	wait(&PID);
 	return 0;
 }
+
 
 //===========================================================
 const char* fake_request(const char * test_string) {
