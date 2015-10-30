@@ -1,0 +1,338 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Homework 2
+\begin_inset Newline newline
+\end_inset
+
+CSCE 313-504
+\end_layout
+
+\begin_layout Author
+Derek Heidtke
+\end_layout
+
+\begin_layout Subsubsection*
+1.
+ What are asynchronous, deferred, and disabled cancellation in pthreads?
+ What makes them different?
+\end_layout
+
+\begin_layout Standard
+All pthreads have two settings: cancelability state, and cancelability type.
+ The pthreads state can be either enabled or disabled; this setting determines
+ whether a call to pthread_cancel() will result in the cancellation of the
+ thread or not.
+ Now, if cancellation is enabled, the call to pthread_cancel() can be either
+ deferred (default behavior), or asynchronous.
+ Deferred cancellation means the thread will be canceled the next time it
+ calls a function that contains a cancellation point.
+ Asynchronous cancellation simply cancels the thread immediately.
+\end_layout
+
+\begin_layout Subsubsection*
+2.
+ What is the role of the contention scope for pthreads? How does it affect
+ the execution of pthreads?
+\end_layout
+
+\begin_layout Standard
+The contention scope for pthreads controls whether the thread must compete
+ for resourses among threads in its same process, or threads and processes
+ across the whole system; respectively bounded or unbounded.
+\end_layout
+
+\begin_layout Subsubsection*
+3.
+ Assume you have a system that does not provide a usleep(unsigned long usec)
+ call to suspend the execution of the thread for a given amount of time,
+ say in usecs.
+ How would you implement this function using condition variables? (Describe
+ your implementation in form of a C/C++ code snippet.)
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+#include <pthread.h>
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+unsigned WAIT_TIME = 2; // wait time in seconds (e.g.
+ 2 sec)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+pthread_cond_t * _wait;
+\end_layout
+
+\begin_layout Plain Layout
+
+pthread_mutex_t * _mutex;
+\end_layout
+
+\begin_layout Plain Layout
+
+const struct timespec * reftimes;
+\end_layout
+
+\begin_layout Plain Layout
+
+struct timeval * reftimev;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+// Convert from timeval to timespec
+\end_layout
+
+\begin_layout Plain Layout
+
+reftimes.tv_sec = reftimev.tv_sec;
+\end_layout
+
+\begin_layout Plain Layout
+
+reftimes.tv_nsec = reftimev.tv_usec*1000;
+\end_layout
+
+\begin_layout Plain Layout
+
+reftimes.tv_sec += WAIT_TIME;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+4.
+ Which of the scheduling algorithms listed below could result in starvation?
+\end_layout
+
+\begin_layout Itemize
+a) First-come, first-served
+\end_layout
+
+\begin_layout Standard
+No starvation; every process eventually gets processor time.
+\end_layout
+
+\begin_layout Itemize
+b) Shortest job first
+\end_layout
+
+\begin_layout Standard
+Starvation possible; a long process could potentially have a never-ending
+ stream of short processes cut in front of it.
+\end_layout
+
+\begin_layout Itemize
+c) Round robin
+\end_layout
+
+\begin_layout Standard
+No starvation; because of the limited time limit (time quantum), all processes
+ get the same amount of processor time until it finishes.
+\end_layout
+
+\begin_layout Itemize
+d) Fixed priority
+\end_layout
+
+\begin_layout Standard
+Starvation possible; if a process ends up with a low-priority, there is
+ no way to change that, so it will likely get stuck behind a perpetual train
+ of higher-priority processes.
+\end_layout
+
+\begin_layout Subsubsection*
+5.
+ Servers can be designed to limit the number of open connections.
+ For example, a server may wish to have only N connections active at any
+ time.
+ As soon as N connections are established, the server will not handle more
+ connections until at least one existing connection is closed.
+ How would you use semaphores to limit the number of concurrent connections?
+ Assume that you have a function called HandleNextIncomingConnection() and
+ one called CloseExistingConnection(), which are called before and at the
+ end of handling a connection.
+ How would you add the necessary synchronization code to limit the number
+ of concurrent connections to at most N?
+\end_layout
+
+\begin_layout Standard
+First, initialize a semaphore, _connections, with the value of N.
+ Then, do:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+_connections.P();
+\end_layout
+
+\begin_layout Plain Layout
+
+HandleNextIncomingConnection();
+\end_layout
+
+\begin_layout Plain Layout
+
+// ...
+\end_layout
+
+\begin_layout Plain Layout
+
+CloseExistingConnection();
+\end_layout
+
+\begin_layout Plain Layout
+
+_connection.V();
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So, the server will continue to handle connections until the critical section
+ is full, at which point the N+1 request causes the server to block (on
+ the P() call).
+ Then, when the critical section becomes not-full, the server becomes unblocked
+ (after the V() call) and is allowed to admit more connections.
+\end_layout
+
+\begin_layout Subsubsection*
+6.
+ Ten processes share a critical section implemented by using a semaphore
+ x.
+ Nine of these processes use the code x.P(); <critical section>; x.V().
+ However, one process erroneously uses the code x.V(); <critical section>;
+ x.P().
+ What is the maximum number of processes that can be in the critical section
+ at the same time?
+\end_layout
+
+\begin_layout Standard
+Because the incorrect code increments the semaphore instead of decrementing
+ it, the count on the semaphore is off by two.
+ Now, N+2 threads are allowed in the critical section when only N were allowed
+ in before.
+ In general, whenever the incorrect code runs, the maximum allowed number
+ of threads will increase by 2.
+\end_layout
+
+\begin_layout Subsubsection*
+7.
+ A customer gives the following instructions to a bank manager: Do not credit
+ any funds to my account if the balance in my account exceeds n, and hold
+ any debits until the balance in the account is large enough to permit the
+ debit.
+ Design a class in Java (called SafeAccount, to be initialized with a given
+ value for n) with two methods, credit and debit, that implements this type
+ of account.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_body
+\end_document
