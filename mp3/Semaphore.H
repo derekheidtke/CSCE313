@@ -60,6 +60,7 @@ public:
 
   int P();
   int V();
+  int get_value() {return value;}
 };
 
 
