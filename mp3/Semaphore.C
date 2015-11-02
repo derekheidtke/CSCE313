@@ -11,8 +11,9 @@ Semaphore::Semaphore(int _val) {
 	pthread_mutex_unlock(&m);	// unneccesary?
 }
 
-Semaphore::~Semaphore() {
-
+Semaphore::Semaphore() {
+	m 		= (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+	c 		= (pthread_cond_t)PTHREAD_COND_INITIALIZER;
 }
 
 /* -- SEMAPHORE OPERATIONS */
